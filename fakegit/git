@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+
+import assert from 'node:assert/strict'
+import { basename } from 'node:path'
+
+// This file was added to make esbuild build reproducible
+// For that we need to override git status from BuildInfo
+// See https://pkg.go.dev/runtime/debug#BuildInfo
+
+// Go executes git commands to retrive current dir vcs status, we just fake that
+
+const args = process.argv
+
+assert('node' === basename(args.shift())) // First argument should be node
+assert(import.meta.filename === args.shift()) // Second argument should be this script
+
+switch (JSON.stringify(args)) {
+  case (JSON.stringify(['-c', 'log.showsignature=false', 'log', '-1', '--format=%H:%ct'])): {
+    console.log('ea453bf687c8e5cf3c5f11aae372c5ca33be0c98:1748315518') // v0.25.5
+    break
+  }
+  case (JSON.stringify(['status', '--porcelain'])): {
+    // do nothing, i.e. report no changes in tree
+    break
+  }
+  default: {
+    throw new Error('Unrecognized command')
+  }
+}
